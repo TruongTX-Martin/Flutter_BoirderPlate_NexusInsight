@@ -13,7 +13,7 @@ void main(){
   BlocSupervisor.delegate = SimpleBlocDelegate();
   Dio dio  = Dio(Options(receiveTimeout: 5000, connectTimeout: 5000, baseUrl: Constants.BASE_URL));
   LocalDataSource localDataSource = new LocalDataSource();
-  APIDataSource apiDataSource = new APIDataSource(dio:dio);
+  APIDataSource apiDataSource = new APIDataSource(dio:dio, localDataSource: localDataSource);
   final UserRepository userRepository = new UserRepository(apiDataSource,localDataSource);
   runApp(
      BlocProvider(

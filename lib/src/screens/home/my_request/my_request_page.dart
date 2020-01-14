@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inno_insight/src/screens/home/my_request/my_request_bloc.dart';
+import 'package:inno_insight/src/screens/home/my_request/my_request_event.dart';
 import 'package:inno_insight/src/utils/utils.dart';
 import '../home.dart';
+import 'my_request_state.dart';
 
 class MyRequestPage extends StatefulWidget {
   @override
@@ -12,6 +16,15 @@ class _MyRequestPageState extends State<MyRequestPage> {
   String currentCategory = MyRequestConstant.CATEGORY_ALL;
   String currentStatus = MyRequestConstant.STATUS_ALL;
 
+  MyRequestBloc myRequestBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    myRequestBloc = BlocProvider.of<MyRequestBloc>(context);
+    myRequestBloc.add(MyRequestEventFetch());
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = Utilities.widthScreen(context);
@@ -19,73 +32,283 @@ class _MyRequestPageState extends State<MyRequestPage> {
       appBar: AppBar(
         title: Center(child: Text('My Request')),
       ),
-      body: Stack(
-        children: <Widget>[
-          Column(
+      body: BlocBuilder<MyRequestBloc, MyRequestState>(
+        builder: (context, state) {
+          return Stack(
             children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: GestureDetector(
-                          onTap: () {
-                            this.showActionSheetCategory();
-                          },
-                          child: Container(
-                            width: width / 2 - 30,
-                            decoration: BoxDecoration(
-                                border: Border.all(color: HexColor('#6e6e6e')),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(currentCategory),
-                                  Image.asset(ImageSource.IMG_DROPDOWN,
-                                      width: 15, height: 15)
-                                ],
+              Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Padding(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: GestureDetector(
+                              onTap: () {
+                                this.showActionSheetCategory();
+                              },
+                              child: Container(
+                                width: width / 2 - 30,
+                                decoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: HexColor('#6e6e6e')),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(5))),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(currentCategory),
+                                      Image.asset(ImageSource.IMG_DROPDOWN,
+                                          width: 15, height: 15)
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )),
-                    Padding(
-                        padding: const EdgeInsets.only(right: 15),
-                        child: GestureDetector(
-                          onTap: () {
-                            this.showActionSheetStatus();
-                          },
-                          child: Container(
-                            width: width / 2 - 30,
-                            decoration: BoxDecoration(
-                                border: Border.all(color: HexColor('#6e6e6e')),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5))),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(currentStatus),
-                                  Image.asset(ImageSource.IMG_DROPDOWN,
-                                      width: 15, height: 15)
-                                ],
+                            )),
+                        Padding(
+                            padding: const EdgeInsets.only(right: 15),
+                            child: GestureDetector(
+                              onTap: () {
+                                this.showActionSheetStatus();
+                              },
+                              child: Container(
+                                width: width / 2 - 30,
+                                decoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: HexColor('#6e6e6e')),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(5))),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(currentStatus),
+                                      Image.asset(ImageSource.IMG_DROPDOWN,
+                                          width: 15, height: 15)
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )),
-                  ],
+                            )),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+              if (state is MyRequestStateLoading)
+                Container(
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-              )
+              if (state is MyRequestStateLoaded)
+                Flex(
+                  direction: Axis.vertical,
+                  children: <Widget>[
+                    Expanded(
+                  child: ListView.builder(
+                    itemCount: state.listRequest.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Card(
+                          child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 5,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 5),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: Column(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(
+                                                'Category',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Container(
+                                              child: Text(state
+                                                  .listRequest[index]
+                                                  .getCategory),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(
+                                                'Status',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Container(
+                                              child: Text(
+                                                state.listRequest[index]
+                                                    .getStatus,
+                                                style: TextStyle(
+                                                    color: state
+                                                                .listRequest[
+                                                                    index]
+                                                                .getStatus ==
+                                                            'Approved'
+                                                        ? HexColor('#84ba62')
+                                                        : HexColor('#f4b775')),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(
+                                                'Compliance',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Container(
+                                              child: Text(
+                                                state.listRequest[index]
+                                                    .getCompliance,
+                                                style: TextStyle(
+                                                    color: state
+                                                                .listRequest[
+                                                                    index]
+                                                                .getCompliance ==
+                                                            'Passed'
+                                                        ? HexColor('#84ba62')
+                                                        : HexColor('#f4b775')),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(
+                                                'Requested Time',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Container(
+                                              alignment: Alignment.topLeft,
+                                              child: Text(
+                                                state
+                                                    .listRequest[index]
+                                                    .getRequestTime
+                                                    .getRequestTime,
+                                                style: TextStyle(
+                                                    color: state
+                                                                .listRequest[
+                                                                    index]
+                                                                .getCompliance ==
+                                                            'Passed'
+                                                        ? HexColor('#84ba62')
+                                                        : HexColor('#f4b775')),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                              flex: 3,
+                                              child: Text(
+                                                'Submitted At',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Container(
+                                              alignment: Alignment.topLeft,
+                                              child: Text(
+                                                state
+                                                    .listRequest[index]
+                                                    .getSubmitAt
+                                                    .getSubmittedTime,
+                                                style: TextStyle(
+                                                    color: state
+                                                                .listRequest[
+                                                                    index]
+                                                                .getCompliance ==
+                                                            'Passed'
+                                                        ? HexColor('#84ba62')
+                                                        : HexColor('#f4b775')),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 5),
+                              child: new Container(
+                                alignment: Alignment.bottomRight,
+                                child: Image.asset(ImageSource.IMG_ARROW_RIGHT,
+                                    width: 15, height: 15),
+                              ),
+                            ),
+                          )
+                        ],
+                      ));
+                    },
+                  ),
+                )
+                  ],
+                )
             ],
-          )
-        ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),

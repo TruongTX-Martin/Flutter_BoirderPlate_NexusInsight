@@ -18,8 +18,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocProvider(
+    return Container(
+      child: BlocProvider(
         create: (context) => MyRequestBloc(userRepository: widget.userRepository),
         child: MyRequestPage(),
       ),

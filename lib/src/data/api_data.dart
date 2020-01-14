@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:inno_insight/src/data/local_data.dart';
 import 'package:inno_insight/src/models/models.dart';
 import 'package:inno_insight/src/utils/utils.dart';
 import 'package:meta/meta.dart';
 
 class APIDataSource {
   final Dio dio;
+  final LocalDataSource localDataSource;
 
-  APIDataSource({@required this.dio}) {
+  APIDataSource({@required this.dio, @required this.localDataSource}) {
     this.setupLoggingInterceptor();
   }
 
@@ -25,6 +27,20 @@ class APIDataSource {
     }
   }
 
+  Future<ResultRequestModel> getMyRequest({int page}) async {
+    try {
+      String token = await localDataSource.getCurrentToken();
+      this.setupHeader(token);
+      Response response = await dio.get('/request/my_requests',
+          data: {"offset": page * 10, "limit": 10, "direction": 'desc'});
+      if(response != null && response.statusCode == 200){
+        ResultRequestModel resultRequestModel = ResultRequestModel.fromJson(response.data);
+        return resultRequestModel;
+      }
+      return null;
+    } catch (error) {}
+  }
+
   RequestFailedModel handleError(Error error) {
     RequestFailedModel failedModel;
     if (error is DioError &&
@@ -33,6 +49,14 @@ class APIDataSource {
       failedModel = RequestFailedModel.fromJson(error.response.data);
     }
     return failedModel;
+  }
+
+  setupHeader(String token) {
+    dio.interceptor.request.onSend = (Options options) {
+      options.headers["Accept"] = 'application/json';
+      options.headers["Authorization"] = 'Bearer ' + token;
+      return options;
+    };
   }
 
   void setupLoggingInterceptor() {

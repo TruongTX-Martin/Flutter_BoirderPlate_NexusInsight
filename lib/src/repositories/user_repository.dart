@@ -14,6 +14,9 @@ class UserRepository {
 
   Future<LoginResponse> login(String username, String password) => apiDataSource.login(username, password);
 
+  Future<ResultRequestModel> getMyRequest({int page}) => apiDataSource.getMyRequest(page: page);
+
+
   void saveAccessToken(String token) => localDataSource.saveAccessToken(token);
 
   Future<bool> isSignIn() => localDataSource.isSignIn();
