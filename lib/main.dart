@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> {
             return LoginPage(userRepository: widget.userRepository);
           }
           if(state is Authenticated){
-            return HomePage();
+            return HomePage(userRepository: widget.userRepository);
           }
           return SplashPage();
         },
