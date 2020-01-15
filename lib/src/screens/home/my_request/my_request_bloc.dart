@@ -20,8 +20,10 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
   @override
   Stream<MyRequestState> mapEventToState(MyRequestEvent event) async* {
     final currentState = state;
-    if(event is MyRequestEventFetch){
-      yield MyRequestStateLoading();
+    if(event is MyRequestEventFetch || event is MyRequestEventPullToRefresh){
+      if(event is MyRequestEventFetch){
+        yield MyRequestStateLoading();
+      }
       ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0);
       print(requestModel);
       yield MyRequestStateLoaded(

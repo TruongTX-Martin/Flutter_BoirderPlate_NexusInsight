@@ -43,7 +43,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
   }
 
   Future<bool> refreshListView() {
-    myRequestBloc.add(MyRequestEventFetch());
+    myRequestBloc.add(MyRequestEventPullToRefresh());
     return Future.value();
   }
 
