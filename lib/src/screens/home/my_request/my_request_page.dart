@@ -35,19 +35,19 @@ class _MyRequestPageState extends State<MyRequestPage> {
   }
 
   fetchMyRequest(){
-    myRequestBloc.add(MyRequestEventFetch(category: convertCategory()));
+    myRequestBloc.add(MyRequestEventFetch(category: convertCategory(), status: convertStatus()));
   }
 
   void onScroll() {
     final maxScroll = listviewScrollController.position.maxScrollExtent;
     final currentScroll = listviewScrollController.position.pixels;
     if (maxScroll - currentScroll <= listviewScrollThreshold) {
-      myRequestBloc.add(MyRequestEventFetchMore(category: convertCategory()));
+      myRequestBloc.add(MyRequestEventFetchMore(category: convertCategory(),status: convertStatus()));
     }
   }
 
   Future<bool> refreshListView() {
-    myRequestBloc.add(MyRequestEventPullToRefresh(category: convertCategory()));
+    myRequestBloc.add(MyRequestEventPullToRefresh(category: convertCategory(),status: convertStatus()));
     return Future.value();
   }
 
@@ -59,6 +59,22 @@ class _MyRequestPageState extends State<MyRequestPage> {
       } else {
         return  'Remote';
       }
+  }
+
+  String convertStatus(){
+    switch (currentStatus) {
+      case MyRequestConstant.STATUS_ALL:
+            return '';
+      case MyRequestConstant.STATUS_APPROVED:
+            return MyRequestConstant.STATUS_APPROVED;
+      case MyRequestConstant.STATUS_DISCARDED:
+            return MyRequestConstant.STATUS_DISCARDED;
+      case MyRequestConstant.STATUS_PENDDING:
+            return MyRequestConstant.STATUS_PENDDING;
+      case MyRequestConstant.STATUS_REJECTED:
+            return MyRequestConstant.STATUS_REJECTED;
+      default:
+    }
   }
 
   @override
@@ -165,6 +181,10 @@ class _MyRequestPageState extends State<MyRequestPage> {
                     )
                   ],
                 ),
+                Container(
+                  child: state is MyRequestStateLoaded && state.listRequest.length == 0 ?
+                  Center(child: Text('No results found')) : null,
+                )
             ],
           );
         },
@@ -262,9 +282,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentStatus = MyRequestConstant.STATUS_ALL;
-                });
+                if(currentStatus !=  MyRequestConstant.STATUS_ALL){
+                  setState(() {
+                    currentStatus = MyRequestConstant.STATUS_ALL;
+                  });
+                  this.fetchMyRequest();
+                }
                 Navigator.pop(context);
               },
             ),
@@ -275,9 +298,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentStatus = MyRequestConstant.STATUS_APPROVED;
-                });
+                if(currentStatus !=  MyRequestConstant.STATUS_APPROVED){
+                  setState(() {
+                    currentStatus = MyRequestConstant.STATUS_APPROVED;
+                  });
+                  this.fetchMyRequest();
+                }
                 Navigator.pop(context);
               },
             ),
@@ -288,9 +314,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentStatus = MyRequestConstant.STATUS_PENDDING;
-                });
+                if(currentStatus !=  MyRequestConstant.STATUS_PENDDING){
+                  setState(() {
+                    currentStatus = MyRequestConstant.STATUS_PENDDING;
+                  });
+                  this.fetchMyRequest();
+                }
                 Navigator.pop(context);
               },
             ),
@@ -301,9 +330,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentStatus = MyRequestConstant.STATUS_REJECTED;
-                });
+                if(currentStatus !=  MyRequestConstant.STATUS_REJECTED){
+                  setState(() {
+                    currentStatus = MyRequestConstant.STATUS_REJECTED;
+                  });
+                  this.fetchMyRequest();
+                }
                 Navigator.pop(context);
               },
             ),
@@ -314,9 +346,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentStatus = MyRequestConstant.STATUS_DISCARDED;
-                });
+                if(currentStatus !=  MyRequestConstant.STATUS_DISCARDED){
+                  setState(() {
+                    currentStatus = MyRequestConstant.STATUS_DISCARDED;
+                  });
+                  this.fetchMyRequest();
+                }
                 Navigator.pop(context);
               },
             ),

@@ -6,7 +6,7 @@ class MyRequestConstant {
 
   static const String STATUS_ALL = 'All Status';
   static const String STATUS_APPROVED = 'Approved';
-  static const String STATUS_PENDDING = 'Pedding';
+  static const String STATUS_PENDDING = 'Pending';
   static const String STATUS_REJECTED = 'Rejected';
   static const String STATUS_DISCARDED = 'Discarded';
 

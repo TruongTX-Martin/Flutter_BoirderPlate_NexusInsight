@@ -10,21 +10,23 @@ abstract class MyRequestEvent extends Equatable {
 
 class MyRequestEventFetch extends MyRequestEvent {
   final String category;
+  final String status;
 
-  MyRequestEventFetch({@required this.category}) ;
+  MyRequestEventFetch({@required this.category, @required this.status}) ;
 
 }
 
 class MyRequestEventPullToRefresh extends MyRequestEvent {
   final String category;
+  final String status;
 
-  MyRequestEventPullToRefresh({@required this.category}) ;
+  MyRequestEventPullToRefresh({@required this.category,@required this.status}) ;
 }
 
 class MyRequestEventFetchMore extends MyRequestEvent {
 final String category;
-
-  MyRequestEventFetchMore({@required this.category}) ;
+final String status;
+  MyRequestEventFetchMore({@required this.category,@required this.status}) ;
 
 }
 

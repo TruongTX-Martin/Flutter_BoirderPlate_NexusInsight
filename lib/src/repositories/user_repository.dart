@@ -14,7 +14,7 @@ class UserRepository {
 
   Future<LoginResponse> login(String username, String password) => apiDataSource.login(username, password);
 
-  Future<ResultRequestModel> getMyRequest({int page,String category}) => apiDataSource.getMyRequest(page: page,category: category);
+  Future<ResultRequestModel> getMyRequest({int page,String category,String status}) => apiDataSource.getMyRequest(page: page,category: category, status: status);
 
 
   void saveAccessToken(String token) => localDataSource.saveAccessToken(token);

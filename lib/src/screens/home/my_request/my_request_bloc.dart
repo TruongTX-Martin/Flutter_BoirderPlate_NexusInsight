@@ -22,14 +22,17 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
     final currentState = state;
     if(event is MyRequestEventFetch || event is MyRequestEventPullToRefresh){
       String category;
+      String status;
       if(event is MyRequestEventFetch){
         category = event.category;
+        status = event.status;
         yield MyRequestStateLoading();
       }
       if(event is MyRequestEventPullToRefresh){
         category = event.category;
+        status = event.status;
       }
-      ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0,category: category);
+      ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0,category: category, status: status );
       print(requestModel);
       yield MyRequestStateLoaded(
         hasNext: requestModel.hasNext,
@@ -39,7 +42,7 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
         );
     }
     if(event is MyRequestEventFetchMore && currentState is MyRequestStateLoaded && !currentState.hasReachMax()){
-      ResultRequestModel requestModel = await userRepository.getMyRequest(page: currentState.getNextPage(), category: event.category);
+      ResultRequestModel requestModel = await userRepository.getMyRequest(page: currentState.getNextPage(), category: event.category, status: event.status);
       yield MyRequestStateLoaded(
         hasNext: requestModel.hasNext,
         offset: requestModel.offset,
