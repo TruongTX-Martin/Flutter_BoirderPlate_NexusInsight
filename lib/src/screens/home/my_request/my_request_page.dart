@@ -22,6 +22,10 @@ class _MyRequestPageState extends State<MyRequestPage> {
   final listviewScrollController = ScrollController();
   final listviewScrollThreshold = 200.0;
 
+  //pull to refresh listview
+  final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
+    new GlobalKey<RefreshIndicatorState>();
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +40,11 @@ class _MyRequestPageState extends State<MyRequestPage> {
     if (maxScroll - currentScroll <= listviewScrollThreshold) {
       myRequestBloc.add(MyRequestEventFetchMore());
     }
+  }
+
+  Future<bool> refreshListView() {
+    myRequestBloc.add(MyRequestEventFetch());
+    return Future.value();
   }
 
   @override
@@ -127,12 +136,16 @@ class _MyRequestPageState extends State<MyRequestPage> {
                       child: Padding(
                         padding:
                             const EdgeInsets.only(left: 10, right: 10, top: 50),
-                        child: ListView.builder(
+                        child: RefreshIndicator(
+                          key: refreshIndicatorKey,
+                          onRefresh: refreshListView,
+                          child: ListView.builder(
                           controller: listviewScrollController,
                           itemCount: state.hasReachMax() ? state.listRequest.length : state.listRequest.length + 1,
                           itemBuilder: (BuildContext context, int index) {
                             return index >= state.listRequest.length ? BottomLoader() : MyRequestItemWidget(requestModel: state.listRequest[index]);
                           },
+                        ),
                         ),
                       ),
                     )
