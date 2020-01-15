@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inno_insight/src/models/models.dart';
 import 'package:inno_insight/src/screens/home/my_request/my_request_bloc.dart';
 import 'package:inno_insight/src/screens/home/my_request/my_request_event.dart';
 import 'package:inno_insight/src/utils/utils.dart';
@@ -15,14 +16,26 @@ class MyRequestPage extends StatefulWidget {
 class _MyRequestPageState extends State<MyRequestPage> {
   String currentCategory = MyRequestConstant.CATEGORY_ALL;
   String currentStatus = MyRequestConstant.STATUS_ALL;
-
   MyRequestBloc myRequestBloc;
+
+  //handle scroll to bottom listview
+  final listviewScrollController = ScrollController();
+  final listviewScrollThreshold = 200.0;
 
   @override
   void initState() {
     super.initState();
     myRequestBloc = BlocProvider.of<MyRequestBloc>(context);
     myRequestBloc.add(MyRequestEventFetch());
+    listviewScrollController.addListener(onScroll);
+  }
+
+  void onScroll() {
+    final maxScroll = listviewScrollController.position.maxScrollExtent;
+    final currentScroll = listviewScrollController.position.pixels;
+    if (maxScroll - currentScroll <= listviewScrollThreshold) {
+      myRequestBloc.add(MyRequestEventFetchMore());
+    }
   }
 
   @override
@@ -111,201 +124,20 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   direction: Axis.vertical,
                   children: <Widget>[
                     Expanded(
-                  child: ListView.builder(
-                    itemCount: state.listRequest.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Card(
-                          child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            flex: 5,
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 5),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 10, bottom: 10),
-                                child: Column(
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 5),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Category',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black),
-                                              )),
-                                          Expanded(
-                                            flex: 4,
-                                            child: Container(
-                                              child: Text(state
-                                                  .listRequest[index]
-                                                  .getCategory),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 5),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Status',
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              )),
-                                          Expanded(
-                                            flex: 4,
-                                            child: Container(
-                                              child: Text(
-                                                state.listRequest[index]
-                                                    .getStatus,
-                                                style: TextStyle(
-                                                    color: state
-                                                                .listRequest[
-                                                                    index]
-                                                                .getStatus ==
-                                                            'Approved'
-                                                        ? HexColor('#84ba62')
-                                                        : HexColor('#f4b775')),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 5),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Compliance',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black),
-                                              )),
-                                          Expanded(
-                                            flex: 4,
-                                            child: Container(
-                                              child: Text(
-                                                state.listRequest[index]
-                                                    .getCompliance,
-                                                style: TextStyle(
-                                                    color: state
-                                                                .listRequest[
-                                                                    index]
-                                                                .getCompliance ==
-                                                            'Passed'
-                                                        ? HexColor('#84ba62')
-                                                        : HexColor('#f4b775')),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 5),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Requested Time',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black),
-                                              )),
-                                          Expanded(
-                                            flex: 4,
-                                            child: Container(
-                                              alignment: Alignment.topLeft,
-                                              child: Text(
-                                                state
-                                                    .listRequest[index]
-                                                    .getRequestTime
-                                                    .getRequestTime,
-                                                style: TextStyle(
-                                                    color: state
-                                                                .listRequest[
-                                                                    index]
-                                                                .getCompliance ==
-                                                            'Passed'
-                                                        ? HexColor('#84ba62')
-                                                        : HexColor('#f4b775')),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 5),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Submitted At',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black),
-                                              )),
-                                          Expanded(
-                                            flex: 4,
-                                            child: Container(
-                                              alignment: Alignment.topLeft,
-                                              child: Text(
-                                                state
-                                                    .listRequest[index]
-                                                    .getSubmitAt
-                                                    .getSubmittedTime,
-                                                style: TextStyle(
-                                                    color: state
-                                                                .listRequest[
-                                                                    index]
-                                                                .getCompliance ==
-                                                            'Passed'
-                                                        ? HexColor('#84ba62')
-                                                        : HexColor('#f4b775')),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 5),
-                              child: new Container(
-                                alignment: Alignment.bottomRight,
-                                child: Image.asset(ImageSource.IMG_ARROW_RIGHT,
-                                    width: 15, height: 15),
-                              ),
-                            ),
-                          )
-                        ],
-                      ));
-                    },
-                  ),
-                )
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(left: 10, right: 10, top: 50),
+                        child: ListView.builder(
+                          controller: listviewScrollController,
+                          itemCount: state.hasReachMax() ? state.listRequest.length : state.listRequest.length + 1,
+                          itemBuilder: (BuildContext context, int index) {
+                            return index >= state.listRequest.length ? BottomLoader() : MyRequestItemWidget(requestModel: state.listRequest[index]);
+                          },
+                        ),
+                      ),
+                    )
                   ],
-                )
+                ),
             ],
           );
         },
@@ -496,6 +328,205 @@ class _MyRequestPageState extends State<MyRequestPage> {
           ),
         );
       },
+    );
+  }
+}
+
+class BottomLoader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Center(
+        child: SizedBox(
+          width: 33,
+          height: 33,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyRequestItemWidget extends StatelessWidget {
+  final RequestModel requestModel;
+
+  const MyRequestItemWidget({Key key, @required this.requestModel})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 5),
+      child: Card(
+          child: Row(
+        children: <Widget>[
+          Expanded(
+            flex: 5,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Category',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              )),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              child: Text(requestModel.getCategory),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Status',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              )),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              child: Text(
+                                requestModel.getStatus,
+                                style: TextStyle(
+                                    color: requestModel.getStatus ==
+                                            'Approved'
+                                        ? HexColor('#84ba62')
+                                        : HexColor('#f4b775')),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Compliance',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              )),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              child: Text(
+                                requestModel.getCompliance,
+                                style: TextStyle(
+                                    color: requestModel
+                                                .getCompliance ==
+                                            'Passed'
+                                        ? HexColor('#84ba62')
+                                        : HexColor('#f4b775')),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Requested Time',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              )),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                requestModel.getRequestTime
+                                    .getRequestTime,
+                                style: TextStyle(
+                                    color: requestModel
+                                                .getCompliance ==
+                                            'Passed'
+                                        ? HexColor('#84ba62')
+                                        : HexColor('#f4b775')),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Submitted At',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              )),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                requestModel.getSubmitAt
+                                    .getSubmittedTime,
+                                style: TextStyle(
+                                    color: requestModel
+                                                .getCompliance ==
+                                            'Passed'
+                                        ? HexColor('#84ba62')
+                                        : HexColor('#f4b775')),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 5),
+              child: new Container(
+                alignment: Alignment.bottomRight,
+                child: Image.asset(ImageSource.IMG_ARROW_RIGHT,
+                    width: 15, height: 15),
+              ),
+            ),
+          )
+        ],
+      )),
     );
   }
 }

@@ -10,6 +10,8 @@ abstract class MyRequestEvent extends Equatable {
 
 class MyRequestEventFetch extends MyRequestEvent {}
 
+class MyRequestEventFetchMore extends MyRequestEvent{}
+
 class MyRequestEventFailure extends MyRequestEvent {}
 
 class MyRequestEventSuccess  extends MyRequestEvent {}

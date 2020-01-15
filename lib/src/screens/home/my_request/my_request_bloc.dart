@@ -19,14 +19,29 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
 
   @override
   Stream<MyRequestState> mapEventToState(MyRequestEvent event) async* {
-
+    final currentState = state;
     if(event is MyRequestEventFetch){
       yield MyRequestStateLoading();
       ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0);
       print(requestModel);
-      yield MyRequestStateLoaded(listRequest: requestModel.getListRequestModel);
+      yield MyRequestStateLoaded(
+        hasNext: requestModel.hasNext,
+        offset: requestModel.offset,
+        limit: requestModel.limit,
+        listRequest: requestModel.getListRequestModel
+        );
+    }
+    if(event is MyRequestEventFetchMore && currentState is MyRequestStateLoaded && !currentState.hasReachMax()){
+      ResultRequestModel requestModel = await userRepository.getMyRequest(page: currentState.getNextPage());
+      yield MyRequestStateLoaded(
+        hasNext: requestModel.hasNext,
+        offset: requestModel.offset,
+        limit: requestModel.limit,
+        listRequest: currentState.listRequest + requestModel.getListRequestModel
+        );
     }
 
   }
+
 
 }
