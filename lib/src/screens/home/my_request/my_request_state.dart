@@ -24,7 +24,7 @@ class MyRequestStateLoaded extends MyRequestState {
 
 
   bool hasReachMax() {
-    return offset + limit > hasNext;
+    return offset + limit >= hasNext;
   }
 
   int getNextPage(){

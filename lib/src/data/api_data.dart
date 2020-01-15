@@ -27,12 +27,12 @@ class APIDataSource {
     }
   }
 
-  Future<ResultRequestModel> getMyRequest({int page}) async {
+  Future<ResultRequestModel> getMyRequest({int page,String category}) async {
     try {
       String token = await localDataSource.getCurrentToken();
       this.setupHeader(token);
       Response response = await dio.get('/request/my_requests',
-          data: {"offset": page * 10, "limit": 10, "direction": 'desc'});
+          data: {"offset": page * 10, "limit": 10, "direction": 'desc', "category" : category});
       if(response != null && response.statusCode == 200){
         ResultRequestModel resultRequestModel = ResultRequestModel.fromJson(response.data);
         return resultRequestModel;

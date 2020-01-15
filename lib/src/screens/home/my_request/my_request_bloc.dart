@@ -21,10 +21,15 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
   Stream<MyRequestState> mapEventToState(MyRequestEvent event) async* {
     final currentState = state;
     if(event is MyRequestEventFetch || event is MyRequestEventPullToRefresh){
+      String category;
       if(event is MyRequestEventFetch){
+        category = event.category;
         yield MyRequestStateLoading();
       }
-      ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0);
+      if(event is MyRequestEventPullToRefresh){
+        category = event.category;
+      }
+      ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0,category: category);
       print(requestModel);
       yield MyRequestStateLoaded(
         hasNext: requestModel.hasNext,
@@ -34,7 +39,7 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
         );
     }
     if(event is MyRequestEventFetchMore && currentState is MyRequestStateLoaded && !currentState.hasReachMax()){
-      ResultRequestModel requestModel = await userRepository.getMyRequest(page: currentState.getNextPage());
+      ResultRequestModel requestModel = await userRepository.getMyRequest(page: currentState.getNextPage(), category: event.category);
       yield MyRequestStateLoaded(
         hasNext: requestModel.hasNext,
         offset: requestModel.offset,

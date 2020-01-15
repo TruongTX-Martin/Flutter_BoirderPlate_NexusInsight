@@ -30,21 +30,35 @@ class _MyRequestPageState extends State<MyRequestPage> {
   void initState() {
     super.initState();
     myRequestBloc = BlocProvider.of<MyRequestBloc>(context);
-    myRequestBloc.add(MyRequestEventFetch());
+    this.fetchMyRequest();
     listviewScrollController.addListener(onScroll);
+  }
+
+  fetchMyRequest(){
+    myRequestBloc.add(MyRequestEventFetch(category: convertCategory()));
   }
 
   void onScroll() {
     final maxScroll = listviewScrollController.position.maxScrollExtent;
     final currentScroll = listviewScrollController.position.pixels;
     if (maxScroll - currentScroll <= listviewScrollThreshold) {
-      myRequestBloc.add(MyRequestEventFetchMore());
+      myRequestBloc.add(MyRequestEventFetchMore(category: convertCategory()));
     }
   }
 
   Future<bool> refreshListView() {
-    myRequestBloc.add(MyRequestEventPullToRefresh());
+    myRequestBloc.add(MyRequestEventPullToRefresh(category: convertCategory()));
     return Future.value();
+  }
+
+  String convertCategory(){
+      if (currentCategory == MyRequestConstant.CATEGORY_ALL) {
+        return '';
+      } else if (currentCategory == MyRequestConstant.CATEGORY_OFFWORK) {
+        return 'Off';
+      } else {
+        return  'Remote';
+      }
   }
 
   @override
@@ -178,9 +192,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentCategory = MyRequestConstant.CATEGORY_ALL;
-                });
+                if(currentCategory != MyRequestConstant.CATEGORY_ALL){
+                  setState(() {
+                    currentCategory = MyRequestConstant.CATEGORY_ALL;
+                    this.fetchMyRequest();
+                  });
+                }
                 Navigator.pop(context);
               },
             ),
@@ -192,9 +209,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                               ? Colors.red
                               : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentCategory = MyRequestConstant.CATEGORY_OFFWORK;
-                });
+                if(currentCategory != MyRequestConstant.CATEGORY_OFFWORK){
+                  setState(() {
+                    currentCategory = MyRequestConstant.CATEGORY_OFFWORK;
+                    this.fetchMyRequest();
+                  });
+                }
                 Navigator.pop(context);
               },
             ),
@@ -206,9 +226,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                               ? Colors.red
                               : HexColor('#3a7df6'))),
               onPressed: () {
-                setState(() {
-                  currentCategory = MyRequestConstant.CATEGORY_REMOTE;
-                });
+                 if(currentCategory != MyRequestConstant.CATEGORY_REMOTE){
+                  setState(() {
+                    currentCategory = MyRequestConstant.CATEGORY_REMOTE;
+                    this.fetchMyRequest();
+                  });
+                 }
                 Navigator.pop(context);
               },
             ),
