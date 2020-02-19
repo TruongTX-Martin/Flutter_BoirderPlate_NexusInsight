@@ -21,4 +21,6 @@ class UserRepository {
 
   Future<bool> isSignIn() => localDataSource.isSignIn();
 
+  void signOut() => localDataSource.saveAccessToken(null);
+
 }

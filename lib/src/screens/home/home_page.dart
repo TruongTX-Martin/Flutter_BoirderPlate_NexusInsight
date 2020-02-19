@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Container(
       child: BlocProvider(
-        create: (context) => MyRequestBloc(userRepository: widget.userRepository),
+        create: (context) => MyRequestBloc(userRepository: widget.userRepository ),
         child: MyRequestPage(),
       ),
 

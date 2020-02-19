@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inno_insight/src/blocs/authentication_bloc/authentication_bloc.dart';
+import 'package:inno_insight/src/blocs/blocs.dart';
 import 'package:inno_insight/src/models/models.dart';
 import 'package:inno_insight/src/screens/home/my_request/my_request_bloc.dart';
 import 'package:inno_insight/src/screens/home/my_request/my_request_event.dart';
@@ -17,6 +19,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
   String currentCategory = MyRequestConstant.CATEGORY_ALL;
   String currentStatus = MyRequestConstant.STATUS_ALL;
   MyRequestBloc myRequestBloc;
+  AuthenticationBloc authenticationBloc;
 
   //handle scroll to bottom listview
   final listviewScrollController = ScrollController();
@@ -30,6 +33,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
   void initState() {
     super.initState();
     myRequestBloc = BlocProvider.of<MyRequestBloc>(context);
+    authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     this.fetchMyRequest();
     listviewScrollController.addListener(onScroll);
   }
@@ -77,12 +81,30 @@ class _MyRequestPageState extends State<MyRequestPage> {
     }
   }
 
+  handleLogout(){
+    Utilities.showDialogWithCancel(
+      context: context,
+      title: 'Inno Insight',
+      message: 'Are you sure want to logout?',
+      onCancel: () {
+        Navigator.of(context).pop();
+      },
+      onOk: () {
+        Navigator.of(context).pop();
+        authenticationBloc.add(LoggedOut());
+      }
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = Utilities.widthScreen(context);
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text('My Request')),
+        actions: <Widget>[
+          IconButton(icon: Icon(Icons.outlined_flag), onPressed:() =>  this.handleLogout())
+        ],
       ),
       body: BlocBuilder<MyRequestBloc, MyRequestState>(
         builder: (context, state) {
@@ -380,6 +402,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pushNamed(context, Routes.add_request);
               },
             ),
             CupertinoActionSheetAction(
@@ -387,6 +410,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pushNamed(context, Routes.add_request);
               },
             ),
           ],
