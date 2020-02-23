@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inno_insight/src/blocs/blocs.dart';
 import 'package:inno_insight/src/data/data.dart';
+import 'package:inno_insight/src/repositories/repository_helper.dart';
 import 'package:inno_insight/src/repositories/user_repository.dart';
 import 'package:inno_insight/src/screens/auth/login/login.dart';
 import 'package:inno_insight/src/screens/home/add_request/add_request_page.dart';
@@ -19,6 +20,7 @@ void main() {
       new APIDataSource(dio: dio, localDataSource: localDataSource);
   final UserRepository userRepository =
       new UserRepository(apiDataSource, localDataSource);
+  RepositoryHelper.userRepository = userRepository;
   runApp(BlocProvider(
     create: (context) =>
         AuthenticationBloc(userRepository: userRepository)..add(AppStarted()),

@@ -4,13 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inno_insight/src/blocs/authentication_bloc/authentication_bloc.dart';
 import 'package:inno_insight/src/blocs/blocs.dart';
 import 'package:inno_insight/src/models/models.dart';
-import 'package:inno_insight/src/screens/home/my_request/my_request_bloc.dart';
-import 'package:inno_insight/src/screens/home/my_request/my_request_event.dart';
 import 'package:inno_insight/src/utils/utils.dart';
 import '../home.dart';
-import 'my_request_state.dart';
+import 'my_request.dart';
+
+
+enum RequestType {
+  Remote,
+  Offwork
+}
 
 class MyRequestPage extends StatefulWidget {
+
+
   @override
   _MyRequestPageState createState() => _MyRequestPageState();
 }
@@ -402,7 +408,11 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, Routes.add_request);
+                Navigator.pushNamed(
+                  context,
+                  Routes.add_request,
+                  arguments: RequestType.Remote
+                );
               },
             ),
             CupertinoActionSheetAction(
@@ -410,7 +420,11 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, Routes.add_request);
+                Navigator.pushNamed(
+                  context,
+                  Routes.add_request,
+                  arguments: RequestType.Offwork
+                );
               },
             ),
           ],

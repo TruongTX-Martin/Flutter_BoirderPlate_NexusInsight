@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:inno_insight/src/data/local_data.dart';
 import 'package:inno_insight/src/models/models.dart';
+import 'package:inno_insight/src/screens/home/my_request/my_request_page.dart';
 import 'package:inno_insight/src/utils/utils.dart';
 import 'package:meta/meta.dart';
 
@@ -39,6 +42,27 @@ class APIDataSource {
       }
       return null;
     } catch (error) {}
+  }
+
+  Future<RequestFailedModel> addRequestRemote(Map params, RequestType requestType) async {
+    try {
+      String token = await localDataSource.getCurrentToken();
+      this.setupHeader(token);
+      Response response = null;
+      if(requestType == RequestType.Remote){
+       response = await dio.post('/request/remote',
+          data: json.encode(params));
+      }else{
+        response = await dio.post('/request/off',
+          data: json.encode(params));
+      }
+      if(response != null && response.statusCode == 200){
+      return RequestFailedModel.fromJson(response.data);
+      }
+    } catch (error) {
+       print('Response Error:' + error.toString());
+       return this.handleError(error);
+    }
   }
 
   RequestFailedModel handleError(Error error) {

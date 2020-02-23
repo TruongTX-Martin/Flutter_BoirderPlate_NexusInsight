@@ -34,7 +34,6 @@ class MyRequestBloc extends Bloc<MyRequestEvent, MyRequestState> {
         status = event.status;
       }
       ResultRequestModel requestModel = await userRepository.getMyRequest(page: 0,category: category, status: status );
-      print(requestModel);
       yield MyRequestStateLoaded(
         hasNext: requestModel.hasNext,
         offset: requestModel.offset,
