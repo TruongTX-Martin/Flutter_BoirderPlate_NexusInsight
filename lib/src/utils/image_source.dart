@@ -5,4 +5,5 @@ class ImageSource {
   static const String IMG_CALENDAR = 'assets/images/ic_calendar.png';
   static const String IMG_CHECKED = 'assets/images/ic_checked.png';
   static const String IMG_UNCHECK = 'assets/images/ic_uncheck.png';
+  static const String IMG_LOGOUT = 'assets/images/ic_logout.png';
 }

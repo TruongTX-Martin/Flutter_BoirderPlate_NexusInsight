@@ -132,7 +132,15 @@ class _MyRequestPageState extends State<MyRequestPage> {
       appBar: AppBar(
         title: Center(child: Text('My Request')),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.outlined_flag), onPressed:() =>  this.handleLogout())
+          InkWell(
+            onTap: (){
+              this.handleLogout();
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Image.asset(ImageSource.IMG_LOGOUT,width: 30, height: 30),
+            ),            
+          )
         ],
       ),
       body: BlocBuilder<MyRequestBloc, MyRequestState>(
