@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:inno_insight/src/blocs/authentication_bloc/authentication_bloc.dart';
 import 'package:inno_insight/src/blocs/blocs.dart';
 import 'package:inno_insight/src/models/models.dart';
@@ -102,10 +103,32 @@ class _MyRequestPageState extends State<MyRequestPage> {
       );
   }
 
+  Future<bool> onWillPop() async {
+    return (await showDialog(
+      context: context,
+      builder: (context) => new AlertDialog(
+        title: new Text('Are you sure?'),
+        content: new Text('Do you want to exit an App'),
+        actions: <Widget>[
+          new FlatButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: new Text('No'),
+          ),
+          new FlatButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: new Text('Yes'),
+          ),
+        ],
+      ),
+    )) ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = Utilities.widthScreen(context);
-    return Scaffold(
+    return WillPopScope(
+     onWillPop: onWillPop,
+      child: Scaffold(
       appBar: AppBar(
         title: Center(child: Text('My Request')),
         actions: <Widget>[
@@ -223,6 +246,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
           this.showActionSheetRequest();
         },
       ),
+    )
     );
   }
 
@@ -396,6 +420,27 @@ class _MyRequestPageState extends State<MyRequestPage> {
     );
   }
 
+  gotoAddRequestScreen(RequestType requestType) async{
+    final result = await  Navigator.pushNamed(
+                  context,
+                  Routes.add_request,
+                  arguments: requestType
+                );
+    if(result){
+      fetchMyRequest();
+      Fluttertoast.showToast(
+        msg: "Request has been submited",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIos: 1,
+        backgroundColor: HexColor('#79C0DB'),
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+    }
+  }
+
+
   Future<void> showActionSheetRequest() async {
     return showCupertinoModalPopup<void>(
       context: context,
@@ -408,11 +453,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(
-                  context,
-                  Routes.add_request,
-                  arguments: RequestType.Remote
-                );
+                gotoAddRequestScreen(RequestType.Remote);
               },
             ),
             CupertinoActionSheetAction(
@@ -420,11 +461,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                   style: TextStyle(color: HexColor('#3a7df6'))),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(
-                  context,
-                  Routes.add_request,
-                  arguments: RequestType.Offwork
-                );
+                gotoAddRequestScreen(RequestType.Offwork);
               },
             ),
           ],

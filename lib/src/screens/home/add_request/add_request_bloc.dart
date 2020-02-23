@@ -31,7 +31,7 @@ class AddRequestBloc extends Bloc<AddRequestEvent, AddRequestState> {
       RequestFailedModel requestModel = await userRepository.addRequestRemote(map, event.requestType);
       yield AddRequestResponseState(requestModel.getIsSuccess, requestModel.getDetail);
       if(requestModel.isSuccess){
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     }
   }
