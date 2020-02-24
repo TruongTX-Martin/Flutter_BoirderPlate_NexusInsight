@@ -8,16 +8,12 @@ import 'package:inno_insight/src/models/models.dart';
 import 'package:inno_insight/src/utils/utils.dart';
 import '../home.dart';
 import 'my_request.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:flushbar/flushbar.dart';
 
-
-enum RequestType {
-  Remote,
-  Offwork
-}
+enum RequestType { Remote, Offwork }
 
 class MyRequestPage extends StatefulWidget {
-
-
   @override
   _MyRequestPageState createState() => _MyRequestPageState();
 }
@@ -27,6 +23,8 @@ class _MyRequestPageState extends State<MyRequestPage> {
   String currentStatus = MyRequestConstant.STATUS_ALL;
   MyRequestBloc myRequestBloc;
   AuthenticationBloc authenticationBloc;
+  var subscription;
+  ConnectivityResult network = ConnectivityResult.wifi;
 
   //handle scroll to bottom listview
   final listviewScrollController = ScrollController();
@@ -34,7 +32,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
 
   //pull to refresh listview
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
-    new GlobalKey<RefreshIndicatorState>();
+      new GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
@@ -43,219 +41,271 @@ class _MyRequestPageState extends State<MyRequestPage> {
     authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
     this.fetchMyRequest();
     listviewScrollController.addListener(onScroll);
+    getNetworkStatus();
   }
 
-  fetchMyRequest(){
-    myRequestBloc.add(MyRequestEventFetch(category: convertCategory(), status: convertStatus()));
+  getNetworkStatus() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      this.showAlertNetwork();
+      setState(() {
+        network = connectivityResult;
+      });
+    }
+    subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      if (network == ConnectivityResult.none &&
+          result != ConnectivityResult.none) {
+        this.fetchMyRequest();
+      }
+      setState(() {
+        network = result;
+      });
+      if (result == ConnectivityResult.none) {
+        this.showAlertNetwork();
+      }
+    });
+  }
+
+  showAlertNetwork() {
+    Flushbar(
+      title: "Alert",
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.red,
+      message: "Please check your network connection",
+      duration: Duration(seconds: 5),
+    )..show(context);
+  }
+
+  fetchMyRequest() {
+    myRequestBloc.add(MyRequestEventFetch(
+        category: convertCategory(), status: convertStatus()));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscription.cancel();
   }
 
   void onScroll() {
     final maxScroll = listviewScrollController.position.maxScrollExtent;
     final currentScroll = listviewScrollController.position.pixels;
     if (maxScroll - currentScroll <= listviewScrollThreshold) {
-      myRequestBloc.add(MyRequestEventFetchMore(category: convertCategory(),status: convertStatus()));
+      myRequestBloc.add(MyRequestEventFetchMore(
+          category: convertCategory(), status: convertStatus()));
     }
   }
 
   Future<bool> refreshListView() {
-    myRequestBloc.add(MyRequestEventPullToRefresh(category: convertCategory(),status: convertStatus()));
+    myRequestBloc.add(MyRequestEventPullToRefresh(
+        category: convertCategory(), status: convertStatus()));
     return Future.value();
   }
 
-  String convertCategory(){
-      if (currentCategory == MyRequestConstant.CATEGORY_ALL) {
-        return '';
-      } else if (currentCategory == MyRequestConstant.CATEGORY_OFFWORK) {
-        return 'Off';
-      } else {
-        return  'Remote';
-      }
+  String convertCategory() {
+    if (currentCategory == MyRequestConstant.CATEGORY_ALL) {
+      return '';
+    } else if (currentCategory == MyRequestConstant.CATEGORY_OFFWORK) {
+      return 'Off';
+    } else {
+      return 'Remote';
+    }
   }
 
-  String convertStatus(){
+  String convertStatus() {
     switch (currentStatus) {
       case MyRequestConstant.STATUS_ALL:
-            return '';
+        return '';
       case MyRequestConstant.STATUS_APPROVED:
-            return MyRequestConstant.STATUS_APPROVED;
+        return MyRequestConstant.STATUS_APPROVED;
       case MyRequestConstant.STATUS_DISCARDED:
-            return MyRequestConstant.STATUS_DISCARDED;
+        return MyRequestConstant.STATUS_DISCARDED;
       case MyRequestConstant.STATUS_PENDDING:
-            return MyRequestConstant.STATUS_PENDDING;
+        return MyRequestConstant.STATUS_PENDDING;
       case MyRequestConstant.STATUS_REJECTED:
-            return MyRequestConstant.STATUS_REJECTED;
+        return MyRequestConstant.STATUS_REJECTED;
       default:
     }
   }
 
-  handleLogout(){
+  handleLogout() {
     Utilities.showDialogWithCancel(
-      context: context,
-      title: 'Inno Insight',
-      message: 'Are you sure want to logout?',
-      onCancel: () {
-        Navigator.of(context).pop();
-      },
-      onOk: () {
-        Navigator.of(context).pop();
-        authenticationBloc.add(LoggedOut());
-      }
-      );
+        context: context,
+        title: 'Inno Insight',
+        message: 'Are you sure want to logout?',
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+        onOk: () {
+          Navigator.of(context).pop();
+          authenticationBloc.add(LoggedOut());
+        });
   }
 
   Future<bool> onWillPop() async {
     return (await showDialog(
-      context: context,
-      builder: (context) => new AlertDialog(
-        title: new Text('Are you sure?'),
-        content: new Text('Do you want to exit an App'),
-        actions: <Widget>[
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: new Text('No'),
+          context: context,
+          builder: (context) => new AlertDialog(
+            title: new Text('Are you sure?'),
+            content: new Text('Do you want to exit an App'),
+            actions: <Widget>[
+              new FlatButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: new Text('No'),
+              ),
+              new FlatButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: new Text('Yes'),
+              ),
+            ],
           ),
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: new Text('Yes'),
-          ),
-        ],
-      ),
-    )) ?? false;
+        )) ??
+        false;
   }
 
   @override
   Widget build(BuildContext context) {
     double width = Utilities.widthScreen(context);
     return WillPopScope(
-     onWillPop: onWillPop,
-      child: Scaffold(
-      appBar: AppBar(
-        title: Center(child: Text('My Request')),
-        actions: <Widget>[
-          InkWell(
-            onTap: (){
-              this.handleLogout();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Image.asset(ImageSource.IMG_LOGOUT,width: 30, height: 30),
-            ),            
-          )
-        ],
-      ),
-      body: BlocBuilder<MyRequestBloc, MyRequestState>(
-        builder: (context, state) {
-          return Stack(
-            children: <Widget>[
-              Column(
+        onWillPop: onWillPop,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Center(child: Text('My Request')),
+            actions: <Widget>[
+              InkWell(
+                onTap: () {
+                  this.handleLogout();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Image.asset(ImageSource.IMG_LOGOUT,
+                      width: 30, height: 30),
+                ),
+              )
+            ],
+          ),
+          body: BlocBuilder<MyRequestBloc, MyRequestState>(
+            builder: (context, state) {
+              return Stack(
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Padding(
+                                padding: const EdgeInsets.only(left: 15),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    this.showActionSheetCategory();
+                                  },
+                                  child: Container(
+                                    width: width / 2 - 30,
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: HexColor('#6e6e6e')),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text(currentCategory),
+                                          Image.asset(ImageSource.IMG_DROPDOWN,
+                                              width: 15, height: 15)
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                            Padding(
+                                padding: const EdgeInsets.only(right: 15),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    this.showActionSheetStatus();
+                                  },
+                                  child: Container(
+                                    width: width / 2 - 30,
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: HexColor('#6e6e6e')),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text(currentStatus),
+                                          Image.asset(ImageSource.IMG_DROPDOWN,
+                                              width: 15, height: 15)
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  if (state is MyRequestStateLoading)
+                    Container(
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  if (state is MyRequestStateLoaded)
+                    Flex(
+                      direction: Axis.vertical,
                       children: <Widget>[
-                        Padding(
-                            padding: const EdgeInsets.only(left: 15),
-                            child: GestureDetector(
-                              onTap: () {
-                                this.showActionSheetCategory();
-                              },
-                              child: Container(
-                                width: width / 2 - 30,
-                                decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: HexColor('#6e6e6e')),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5))),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Text(currentCategory),
-                                      Image.asset(ImageSource.IMG_DROPDOWN,
-                                          width: 15, height: 15)
-                                    ],
-                                  ),
-                                ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 10, right: 10, top: 50),
+                            child: RefreshIndicator(
+                              key: refreshIndicatorKey,
+                              onRefresh: refreshListView,
+                              child: ListView.builder(
+                                controller: listviewScrollController,
+                                itemCount: state.hasReachMax()
+                                    ? state.listRequest.length
+                                    : state.listRequest.length + 1,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return index >= state.listRequest.length
+                                      ? BottomLoader()
+                                      : MyRequestItemWidget(
+                                          requestModel:
+                                              state.listRequest[index]);
+                                },
                               ),
-                            )),
-                        Padding(
-                            padding: const EdgeInsets.only(right: 15),
-                            child: GestureDetector(
-                              onTap: () {
-                                this.showActionSheetStatus();
-                              },
-                              child: Container(
-                                width: width / 2 - 30,
-                                decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: HexColor('#6e6e6e')),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5))),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Text(currentStatus),
-                                      Image.asset(ImageSource.IMG_DROPDOWN,
-                                          width: 15, height: 15)
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )),
+                            ),
+                          ),
+                        )
                       ],
                     ),
+                  Container(
+                    child: state is MyRequestStateLoaded &&
+                            state.listRequest.length == 0
+                        ? Center(child: Text('No results found'))
+                        : null,
                   )
                 ],
-              ),
-              if (state is MyRequestStateLoading)
-                Container(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              if (state is MyRequestStateLoaded)
-                Flex(
-                  direction: Axis.vertical,
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.only(left: 10, right: 10, top: 50),
-                        child: RefreshIndicator(
-                          key: refreshIndicatorKey,
-                          onRefresh: refreshListView,
-                          child: ListView.builder(
-                          controller: listviewScrollController,
-                          itemCount: state.hasReachMax() ? state.listRequest.length : state.listRequest.length + 1,
-                          itemBuilder: (BuildContext context, int index) {
-                            return index >= state.listRequest.length ? BottomLoader() : MyRequestItemWidget(requestModel: state.listRequest[index]);
-                          },
-                        ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Container(
-                  child: state is MyRequestStateLoaded && state.listRequest.length == 0 ?
-                  Center(child: Text('No results found')) : null,
-                )
-            ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          this.showActionSheetRequest();
-        },
-      ),
-    )
-    );
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
+            child: const Icon(Icons.add),
+            onPressed: () {
+              this.showActionSheetRequest();
+            },
+          ),
+        ));
   }
 
   Future<void> showActionSheetCategory() async {
@@ -272,7 +322,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentCategory != MyRequestConstant.CATEGORY_ALL){
+                if (currentCategory != MyRequestConstant.CATEGORY_ALL) {
                   setState(() {
                     currentCategory = MyRequestConstant.CATEGORY_ALL;
                     this.fetchMyRequest();
@@ -289,7 +339,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                               ? Colors.red
                               : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentCategory != MyRequestConstant.CATEGORY_OFFWORK){
+                if (currentCategory != MyRequestConstant.CATEGORY_OFFWORK) {
                   setState(() {
                     currentCategory = MyRequestConstant.CATEGORY_OFFWORK;
                     this.fetchMyRequest();
@@ -306,12 +356,12 @@ class _MyRequestPageState extends State<MyRequestPage> {
                               ? Colors.red
                               : HexColor('#3a7df6'))),
               onPressed: () {
-                 if(currentCategory != MyRequestConstant.CATEGORY_REMOTE){
+                if (currentCategory != MyRequestConstant.CATEGORY_REMOTE) {
                   setState(() {
                     currentCategory = MyRequestConstant.CATEGORY_REMOTE;
                     this.fetchMyRequest();
                   });
-                 }
+                }
                 Navigator.pop(context);
               },
             ),
@@ -342,7 +392,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentStatus !=  MyRequestConstant.STATUS_ALL){
+                if (currentStatus != MyRequestConstant.STATUS_ALL) {
                   setState(() {
                     currentStatus = MyRequestConstant.STATUS_ALL;
                   });
@@ -358,7 +408,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentStatus !=  MyRequestConstant.STATUS_APPROVED){
+                if (currentStatus != MyRequestConstant.STATUS_APPROVED) {
                   setState(() {
                     currentStatus = MyRequestConstant.STATUS_APPROVED;
                   });
@@ -374,7 +424,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentStatus !=  MyRequestConstant.STATUS_PENDDING){
+                if (currentStatus != MyRequestConstant.STATUS_PENDDING) {
                   setState(() {
                     currentStatus = MyRequestConstant.STATUS_PENDDING;
                   });
@@ -390,7 +440,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentStatus !=  MyRequestConstant.STATUS_REJECTED){
+                if (currentStatus != MyRequestConstant.STATUS_REJECTED) {
                   setState(() {
                     currentStatus = MyRequestConstant.STATUS_REJECTED;
                   });
@@ -406,7 +456,7 @@ class _MyRequestPageState extends State<MyRequestPage> {
                           ? Colors.red
                           : HexColor('#3a7df6'))),
               onPressed: () {
-                if(currentStatus !=  MyRequestConstant.STATUS_DISCARDED){
+                if (currentStatus != MyRequestConstant.STATUS_DISCARDED) {
                   setState(() {
                     currentStatus = MyRequestConstant.STATUS_DISCARDED;
                   });
@@ -428,26 +478,21 @@ class _MyRequestPageState extends State<MyRequestPage> {
     );
   }
 
-  gotoAddRequestScreen(RequestType requestType) async{
-    final result = await  Navigator.pushNamed(
-                  context,
-                  Routes.add_request,
-                  arguments: requestType
-                );
-    if(result){
+  gotoAddRequestScreen(RequestType requestType) async {
+    final result = await Navigator.pushNamed(context, Routes.add_request,
+        arguments: requestType);
+    if (result) {
       fetchMyRequest();
       Fluttertoast.showToast(
-        msg: "Request has been submited",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 1,
-        backgroundColor: HexColor('#79C0DB'),
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+          msg: "Request has been submited",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIos: 1,
+          backgroundColor: HexColor('#79C0DB'),
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
-
 
   Future<void> showActionSheetRequest() async {
     return showCupertinoModalPopup<void>(
@@ -562,8 +607,7 @@ class MyRequestItemWidget extends StatelessWidget {
                               child: Text(
                                 requestModel.getStatus,
                                 style: TextStyle(
-                                    color: requestModel.getStatus ==
-                                            'Approved'
+                                    color: requestModel.getStatus == 'Approved'
                                         ? HexColor('#84ba62')
                                         : HexColor('#f4b775')),
                               ),
@@ -590,11 +634,10 @@ class MyRequestItemWidget extends StatelessWidget {
                               child: Text(
                                 requestModel.getCompliance,
                                 style: TextStyle(
-                                    color: requestModel
-                                                .getCompliance ==
-                                            'Passed'
-                                        ? HexColor('#84ba62')
-                                        : HexColor('#f4b775')),
+                                    color:
+                                        requestModel.getCompliance == 'Passed'
+                                            ? HexColor('#84ba62')
+                                            : HexColor('#f4b775')),
                               ),
                             ),
                           )
@@ -618,14 +661,12 @@ class MyRequestItemWidget extends StatelessWidget {
                             child: Container(
                               alignment: Alignment.topLeft,
                               child: Text(
-                                requestModel.getRequestTime
-                                    .getRequestTime,
+                                requestModel.getRequestTime.getRequestTime,
                                 style: TextStyle(
-                                    color: requestModel
-                                                .getCompliance ==
-                                            'Passed'
-                                        ? HexColor('#84ba62')
-                                        : HexColor('#f4b775')),
+                                    color:
+                                        requestModel.getCompliance == 'Passed'
+                                            ? HexColor('#84ba62')
+                                            : HexColor('#f4b775')),
                               ),
                             ),
                           )
@@ -649,14 +690,12 @@ class MyRequestItemWidget extends StatelessWidget {
                             child: Container(
                               alignment: Alignment.topLeft,
                               child: Text(
-                                requestModel.getSubmitAt
-                                    .getSubmittedTime,
+                                requestModel.getSubmitAt.getSubmittedTime,
                                 style: TextStyle(
-                                    color: requestModel
-                                                .getCompliance ==
-                                            'Passed'
-                                        ? HexColor('#84ba62')
-                                        : HexColor('#f4b775')),
+                                    color:
+                                        requestModel.getCompliance == 'Passed'
+                                            ? HexColor('#84ba62')
+                                            : HexColor('#f4b775')),
                               ),
                             ),
                           )
