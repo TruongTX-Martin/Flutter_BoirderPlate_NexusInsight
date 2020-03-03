@@ -24,44 +24,51 @@ class APIDataSource {
         'client_secret': Constants.CLIENT_SECRET,
       });
       Response response = await dio.post('/signin', data: formData);
+      print('Response Login:' + response.data.toString());
       return new LoginResponse(LoginModel.fromJson(response.data), null);
     } catch (error) {
       return new LoginResponse(null, this.handleError(error));
     }
   }
 
-  Future<ResultRequestModel> getMyRequest({int page,String category,String status}) async {
+  Future<ResultRequestModel> getMyRequest(
+      {int page, String category, String status}) async {
     try {
       String token = await localDataSource.getCurrentToken();
       this.setupHeader(token);
-      Response response = await dio.get('/request/my_requests',
-          data: {"offset": page * 10, "limit": 10, "direction": 'desc', "category" : category, "status": status});
-      if(response != null && response.statusCode == 200){
-        ResultRequestModel resultRequestModel = ResultRequestModel.fromJson(response.data);
+      Response response = await dio.get('/request/my_requests', data: {
+        "offset": page * 10,
+        "limit": 10,
+        "direction": 'desc',
+        "category": category,
+        "status": status
+      });
+      if (response != null && response.statusCode == 200) {
+        ResultRequestModel resultRequestModel =
+            ResultRequestModel.fromJson(response.data);
         return resultRequestModel;
       }
       return null;
     } catch (error) {}
   }
 
-  Future<RequestFailedModel> addRequestRemote(Map params, RequestType requestType) async {
+  Future<RequestFailedModel> addRequestRemote(
+      Map params, RequestType requestType) async {
     try {
       String token = await localDataSource.getCurrentToken();
       this.setupHeader(token);
       Response response = null;
-      if(requestType == RequestType.Remote){
-       response = await dio.post('/request/remote',
-          data: json.encode(params));
-      }else{
-        response = await dio.post('/request/off',
-          data: json.encode(params));
+      if (requestType == RequestType.Remote) {
+        response = await dio.post('/request/remote', data: json.encode(params));
+      } else {
+        response = await dio.post('/request/off', data: json.encode(params));
       }
-      if(response != null && response.statusCode == 200){
-      return RequestFailedModel.fromJson(response.data);
+      if (response != null && response.statusCode == 200) {
+        return RequestFailedModel.fromJson(response.data);
       }
     } catch (error) {
-       print('Response Error:' + error.toString());
-       return this.handleError(error);
+      print('Response Error:' + error.toString());
+      return this.handleError(error);
     }
   }
 
