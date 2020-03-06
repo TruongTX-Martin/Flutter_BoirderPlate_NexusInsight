@@ -42,17 +42,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-      //   builder: (contex, state) {
-      //     if (state is Unauthenticated) {
-      //       return LoginPage(userRepository: widget.userRepository);
-      //     }
-      //     if (state is Authenticated) {
-      //       return HomePage(userRepository: widget.userRepository);
-      //     }
-      //     return SplashPage();
-      //   },
-      // ),
       initialRoute: Routes.home,
       routes: {
         Routes.home: (context) {
@@ -68,7 +57,7 @@ class _MyAppState extends State<MyApp> {
             },
           );
         },
-        Routes.add_request: (context){
+        Routes.add_request: (context) {
           return AddRequestPage();
         }
       },
